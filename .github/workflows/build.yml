@@ -1,0 +1,57 @@
+name: Build installers
+
+# Run manually from the Actions tab, or automatically when a version tag like v0.2.0 is pushed.
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: dist:win
+          - os: macos-latest
+            script: dist:mac
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # The Mac build ships both Apple Silicon and Intel apps; the runner only installs the
+      # image engine for its own chip, so add the Intel one too.
+      - name: Add Intel Mac image engine
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          v=$(node -p "require('sharp/package.json').optionalDependencies['@img/sharp-darwin-x64']")
+          l=$(node -p "require('sharp/package.json').optionalDependencies['@img/sharp-libvips-darwin-x64']")
+          npm install --no-save --force "@img/sharp-darwin-x64@$v" "@img/sharp-libvips-darwin-x64@$l"
+
+      - run: npm run typecheck
+
+      - name: Test every tool
+        run: npm run smoke
+
+      - name: Build installer
+        run: npm run ${{ matrix.script }}
+        env:
+          # Personal build: no paid code-signing certificate.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Squeeze-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+          if-no-files-found: error

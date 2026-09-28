@@ -1,0 +1,35 @@
+appId: com.faisssss.squeeze
+productName: Squeeze
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**
+  - package.json
+  - '!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,test,tests,__tests__,docs,example,examples}'
+# Native image engine and the WebAssembly engines are loaded from disk, so keep them outside the asar archive.
+asarUnpack:
+  - '**/node_modules/sharp/**'
+  - '**/node_modules/@img/**'
+  - '**/node_modules/@jspawn/ghostscript-wasm/**'
+  - '**/node_modules/@neslinesli93/qpdf-wasm/**'
+win:
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch: [x64]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: ${productName}-Setup-${version}.${ext}
+  shortcutName: ${productName}
+mac:
+  icon: build/icon.png
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  # Free ad-hoc signature: Apple Silicon Macs refuse to run completely unsigned apps.
+  identity: '-'
+  hardenedRuntime: false
