@@ -37,8 +37,10 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          v=$(node -p "require('sharp/package.json').optionalDependencies['@img/sharp-darwin-x64']")
-          l=$(node -p "require('sharp/package.json').optionalDependencies['@img/sharp-libvips-darwin-x64']")
+          # sharp's package.json isn't in its "exports", so read the file directly.
+          deps() { node -p "JSON.parse(require('fs').readFileSync('node_modules/sharp/package.json')).optionalDependencies['$1']"; }
+          v=$(deps @img/sharp-darwin-x64)
+          l=$(deps @img/sharp-libvips-darwin-x64)
           npm install --no-save --force "@img/sharp-darwin-x64@$v" "@img/sharp-libvips-darwin-x64@$l"
 
       - run: npm run typecheck
