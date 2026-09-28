@@ -21,7 +21,8 @@ win:
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
-  artifactName: ${productName}-Setup-${version}.${ext}
+  # Fixed names (no version) so the README's "latest" download links never change.
+  artifactName: ${productName}-Setup.${ext}
   shortcutName: ${productName}
 mac:
   icon: build/icon.png
@@ -29,7 +30,7 @@ mac:
   target:
     - target: dmg
       arch: [arm64, x64]
-  artifactName: ${productName}-${version}-${arch}.${ext}
+  artifactName: ${productName}-mac-${arch}.${ext}
   # Free ad-hoc signature: Apple Silicon Macs refuse to run completely unsigned apps.
   identity: '-'
   hardenedRuntime: false

@@ -7,6 +7,9 @@ on:
     branches: ['claude/practical-goodall-gzwdz9', 'main']
     tags: ['v*']
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -56,3 +59,33 @@ jobs:
             dist/*.exe
             dist/*.dmg
           if-no-files-found: error
+
+  # Publish the installers as a GitHub Release so the README links always point at the newest build.
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+
+      - name: Read version
+        id: version
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Squeeze ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          overwrite_files: true
+          body: |
+            Download the installer for your computer:
+            - **Windows:** Squeeze-Setup.exe
+            - **Mac with Apple Silicon (M1–M4):** Squeeze-mac-arm64.dmg
+            - **Mac with Intel chip:** Squeeze-mac-x64.dmg
+          files: installers/*

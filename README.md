@@ -29,12 +29,7 @@ Batch processing everywhere: drop in 50 files and they're all processed. Origina
 
 ## Installing on your computers
 
-Installers are built automatically by GitHub Actions:
-
-1. On GitHub, open **Actions → Build installers → Run workflow**. Pushing a tag like `v0.1.0` also triggers it.
-2. When it finishes (~10 min), download the artifact:
-   - **Squeeze-Windows** → `Squeeze-Setup-x.y.z.exe`
-   - **Squeeze-macOS** → `Squeeze-x.y.z-arm64.dmg` (Apple Silicon: M1/M2/M3/M4) or `…-x64.dmg` (Intel Macs)
+Use the one-click links in [Download](#download) at the bottom of this page. They always point at the newest build: every push to the app's branch rebuilds the installers (~10 min) and publishes them as a GitHub Release.
 
 The app isn't code-signed (signing needs a paid certificate), so the first launch needs one extra click:
 
@@ -91,3 +86,13 @@ To add a tool: add its definition to `src/renderer/src/tools/registry.ts`, write
 ## License
 
 Ghostscript is AGPL-licensed, so this app is AGPL-3.0 too. That's no problem for personal use; it only matters if you ever distribute or sell it.
+
+## Download
+
+| Your computer | One-click download |
+|---|---|
+| 🪟 **Windows** | [⬇ Squeeze-Setup.exe](https://github.com/faisssss/compressor-tool/releases/latest/download/Squeeze-Setup.exe) |
+| 🍎 **Mac with Apple Silicon** (M1, M2, M3, M4) | [⬇ Squeeze-mac-arm64.dmg](https://github.com/faisssss/compressor-tool/releases/latest/download/Squeeze-mac-arm64.dmg) |
+| 🍎 **Mac with Intel chip** | [⬇ Squeeze-mac-x64.dmg](https://github.com/faisssss/compressor-tool/releases/latest/download/Squeeze-mac-x64.dmg) |
+
+Not sure which Mac you have? Apple menu → **About This Mac**: "Chip: Apple M…" means Apple Silicon, "Processor: Intel" means Intel.
