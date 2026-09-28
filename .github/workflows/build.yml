@@ -1,9 +1,10 @@
 name: Build installers
 
-# Run manually from the Actions tab, or automatically when a version tag like v0.2.0 is pushed.
+# Runs on every push to the app's branch, manually from the Actions tab, or when a version tag like v0.2.0 is pushed.
 on:
   workflow_dispatch:
   push:
+    branches: ['claude/practical-goodall-gzwdz9', 'main']
     tags: ['v*']
 
 jobs:
