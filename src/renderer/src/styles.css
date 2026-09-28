@@ -4,10 +4,11 @@
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Space Grotesk Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 
-  --color-ink-950: #07060f;
-  --color-ink-900: #0d0b1a;
-  --color-ink-800: #15122a;
-  --color-ink-700: #221d40;
+  /* Aerowis navy */
+  --color-ink-950: #070c26;
+  --color-ink-900: #0b1236;
+  --color-ink-800: #111a48;
+  --color-ink-700: #1a2562;
 
   --animate-blob: blob 22s ease-in-out infinite;
   --animate-spin-slow: spin 6s linear infinite;
@@ -33,7 +34,7 @@ body,
 body {
   margin: 0;
   background: var(--color-ink-950);
-  color: #ecebff;
+  color: #eef4ff;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   user-select: none;
@@ -46,7 +47,7 @@ textarea {
 }
 
 ::selection {
-  background: rgb(168 85 247 / 0.45);
+  background: rgb(56 189 248 / 0.4);
 }
 
 /* Window dragging for the hidden title bar */
@@ -68,7 +69,7 @@ textarea {
 }
 
 .text-gradient {
-  background: linear-gradient(100deg, #fff 0%, #f0abfc 35%, #a78bfa 60%, #67e8f9 100%);
+  background: linear-gradient(100deg, #fff 0%, #dbeafe 35%, #7dd3fc 65%, #29b6f6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

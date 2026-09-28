@@ -1,4 +1,4 @@
-# Squeeze
+# Aerowis Compressor
 
 A desktop app for Windows and macOS that compresses, converts and edits images, PDFs and Office documents, all **offline, on your own computer**. Think iLovePDF, without the uploads.
 
@@ -34,7 +34,7 @@ Use the one-click links in [Download](#download) at the bottom of this page. The
 The app isn't code-signed (signing needs a paid certificate), so the first launch needs one extra click:
 
 - **Windows:** "Windows protected your PC" → **More info → Run anyway**.
-- **macOS:** open it once, then go to **System Settings → Privacy & Security** and click **Open Anyway**. If macOS says the app "is damaged", run `xattr -cr /Applications/Squeeze.app` in Terminal.
+- **macOS:** open it once, then go to **System Settings → Privacy & Security** and click **Open Anyway**. If macOS says the app "is damaged", run `xattr -cr "/Applications/Aerowis Compressor.app"` in Terminal.
 
 ### Office conversions
 
@@ -91,8 +91,8 @@ Ghostscript is AGPL-licensed, so this app is AGPL-3.0 too. That's no problem for
 
 | Your computer | One-click download |
 |---|---|
-| 🪟 **Windows** | [⬇ Squeeze-Setup.exe](https://github.com/faisssss/compressor-tool/releases/latest/download/Squeeze-Setup.exe) |
-| 🍎 **Mac with Apple Silicon** (M1, M2, M3, M4) | [⬇ Squeeze-mac-arm64.dmg](https://github.com/faisssss/compressor-tool/releases/latest/download/Squeeze-mac-arm64.dmg) |
-| 🍎 **Mac with Intel chip** | [⬇ Squeeze-mac-x64.dmg](https://github.com/faisssss/compressor-tool/releases/latest/download/Squeeze-mac-x64.dmg) |
+| 🪟 **Windows** | [⬇ Aerowis-Compressor-Setup.exe](https://github.com/faisssss/compressor-tool/releases/latest/download/Aerowis-Compressor-Setup.exe) |
+| 🍎 **Mac with Apple Silicon** (M1, M2, M3, M4) | [⬇ Aerowis-Compressor-mac-arm64.dmg](https://github.com/faisssss/compressor-tool/releases/latest/download/Aerowis-Compressor-mac-arm64.dmg) |
+| 🍎 **Mac with Intel chip** | [⬇ Aerowis-Compressor-mac-x64.dmg](https://github.com/faisssss/compressor-tool/releases/latest/download/Aerowis-Compressor-mac-x64.dmg) |
 
 Not sure which Mac you have? Apple menu → **About This Mac**: "Chip: Apple M…" means Apple Silicon, "Processor: Intel" means Intel.

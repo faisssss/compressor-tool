@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { LayoutGrid, ShieldCheck } from 'lucide-react'
 import type { ToolId } from '@shared/types'
 import { CATEGORIES, TOOLS } from '../tools/registry'
-import Logo from './Logo'
+import logo from '../assets/aerowis-logo.png'
 
 interface Props {
   current: ToolId | 'home'
@@ -13,16 +13,16 @@ export default function Sidebar({ current, onNavigate }: Props): React.JSX.Eleme
   const isMac = window.api.platform === 'darwin'
   return (
     <aside className="relative z-10 flex w-[252px] shrink-0 flex-col border-r border-white/[0.06] bg-ink-950/40 backdrop-blur-2xl">
-      <div className={`drag flex items-center gap-3 px-5 ${isMac ? 'pt-12' : 'pt-5'} pb-4`}>
-        <Logo />
-        <div>
-          <div className="font-display text-[19px] font-bold leading-none tracking-tight">Squeeze</div>
-          <div className="mt-1 text-[11px] font-medium text-white/40">File toolkit</div>
+      <div className={`drag px-6 ${isMac ? 'pt-10' : 'pt-4'} pb-3`}>
+        <img src={logo} alt="Aerowis Aviation" className="w-[132px] select-none" draggable={false} />
+        <div className="mt-1.5 flex items-center gap-2">
+          <span className="h-px flex-1 bg-gradient-to-r from-sky-400/60 to-transparent" />
+          <span className="font-display text-[11px] font-semibold uppercase tracking-[0.32em] text-sky-200/80">Compressor</span>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-3">
-        <NavItem active={current === 'home'} onClick={() => onNavigate('home')} colors={['#a78bfa', '#22d3ee']} label="All tools" icon={LayoutGrid} />
+      <nav className="flex-1 space-y-3 overflow-y-auto px-3 pb-3">
+        <NavItem active={current === 'home'} onClick={() => onNavigate('home')} colors={['#29b6f6', '#1d4ed8']} label="All tools" icon={LayoutGrid} />
         {CATEGORIES.map((cat) => (
           <div key={cat.id}>
             <div className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/30">{cat.name}</div>

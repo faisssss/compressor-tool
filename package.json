@@ -1,7 +1,7 @@
 {
   "name": "compressor-tool",
-  "productName": "Squeeze",
-  "version": "0.1.0",
+  "productName": "Aerowis Compressor",
+  "version": "0.2.0",
   "description": "Compress, convert and transform images, PDFs and Office documents — entirely on your computer.",
   "main": "./out/main/index.js",
   "author": "faisssss",

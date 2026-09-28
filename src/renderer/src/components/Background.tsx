@@ -14,7 +14,7 @@ export default function Background({ colors }: { colors: [string, string] }): Re
         animate={{ backgroundColor: colors[1] }}
         transition={{ duration: 1.2 }}
       />
-      <div className="absolute bottom-[-30%] left-[30%] h-[60vh] w-[60vh] rounded-full bg-indigo-600 opacity-20 blur-[140px] animate-blob [animation-delay:-14s]" />
+      <div className="absolute bottom-[-30%] left-[30%] h-[60vh] w-[60vh] rounded-full bg-blue-700 opacity-25 blur-[140px] animate-blob [animation-delay:-14s]" />
       <div className="grid-bg absolute inset-0" />
       <div className="grain absolute inset-0" />
     </div>

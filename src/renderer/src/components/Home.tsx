@@ -29,8 +29,8 @@ export default function Home({ onOpen }: { onOpen: (id: ToolId) => void }): Reac
             transition={{ delay: 0.05 }}
             className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/70"
           >
-            <Sparkles className="h-3.5 w-3.5 text-fuchsia-300" />
-            {TOOLS.length} tools · works offline · no uploads
+            <Sparkles className="h-3.5 w-3.5 text-sky-300" />
+            Aerowis Compressor · {TOOLS.length} tools · works offline
           </motion.div>
           <h1 className="font-display text-[56px] font-bold leading-[1.02] tracking-tight">
             Make every file

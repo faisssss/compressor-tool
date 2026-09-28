@@ -16,7 +16,7 @@ const activeJobs = new Set<string>()
 
 function getWorker(): UtilityProcess {
   if (worker) return worker
-  const child = utilityProcess.fork(join(__dirname, 'worker.js'), [], { serviceName: 'Squeeze engine' })
+  const child = utilityProcess.fork(join(__dirname, 'worker.js'), [], { serviceName: 'Aerowis Compressor engine' })
   child.on('message', (msg: { kind: 'job-event'; event: JobEvent } | InspectResult) => {
     if (msg.kind === 'job-event') {
       if (msg.event.type === 'done' || msg.event.type === 'fatal') activeJobs.delete(msg.event.jobId)
@@ -113,8 +113,8 @@ function createWindow(): void {
     minWidth: 1040,
     minHeight: 680,
     show: false,
-    backgroundColor: '#07060f',
-    title: 'Squeeze',
+    backgroundColor: '#070c26',
+    title: 'Aerowis Compressor',
     titleBarStyle: 'hidden',
     ...(isMac
       ? { trafficLightPosition: { x: 18, y: 18 } }

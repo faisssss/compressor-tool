@@ -49,7 +49,7 @@ export default function Results({ tool, job, onAdjust, onReset }: Props): React.
       {/* Summary */}
       <motion.div layout className="glass relative overflow-hidden rounded-[24px] p-6">
         <div className="pointer-events-none absolute inset-0 opacity-60" style={{ background: `radial-gradient(500px circle at 12% 0%, ${c1}30, transparent 60%)` }} />
-        {job.done && stats.errors === 0 && !job.fatal && <Confetti colors={[c1, c2, '#ffffff', '#fde047']} />}
+        {job.done && stats.errors === 0 && !job.fatal && <Confetti colors={[c1, c2, '#ffffff', '#bae6fd']} />}
 
         <div className="relative flex items-center gap-6">
           {!job.done ? (

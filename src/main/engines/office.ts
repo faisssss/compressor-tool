@@ -71,7 +71,7 @@ interface Converted {
 }
 
 async function viaLibreOffice(soffice: string, input: string, convertTo: string, extraArgs: string[] = []): Promise<Converted> {
-  const work = await mkdtemp(join(tmpdir(), 'squeeze-'))
+  const work = await mkdtemp(join(tmpdir(), 'aerowis-'))
   // A private profile lets conversions run even while the user has LibreOffice open.
   const profile = pathToFileURL(join(work, 'profile')).href
   const outDir = join(work, 'out')
@@ -130,7 +130,7 @@ switch ($Kind) {
 `
 
 async function viaMsOffice(input: string, kind: Kind | 'pdf2word', outExt: string): Promise<Converted> {
-  const work = await mkdtemp(join(tmpdir(), 'squeeze-'))
+  const work = await mkdtemp(join(tmpdir(), 'aerowis-'))
   const script = join(work, 'convert.ps1')
   const out = join(work, `${stem(input)}.${outExt}`)
   await writeFile(script, PS_SCRIPT, 'utf8')

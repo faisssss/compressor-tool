@@ -56,7 +56,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Squeeze-${{ runner.os }}
+          name: Aerowis-Compressor-${{ runner.os }}
           path: |
             dist/*.exe
             dist/*.dmg
@@ -81,13 +81,13 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: Squeeze ${{ steps.version.outputs.tag }}
+          name: Aerowis Compressor ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
           make_latest: true
           overwrite_files: true
           body: |
             Download the installer for your computer:
-            - **Windows:** Squeeze-Setup.exe
-            - **Mac with Apple Silicon (M1–M4):** Squeeze-mac-arm64.dmg
-            - **Mac with Intel chip:** Squeeze-mac-x64.dmg
+            - **Windows:** Aerowis-Compressor-Setup.exe
+            - **Mac with Apple Silicon (M1–M4):** Aerowis-Compressor-mac-arm64.dmg
+            - **Mac with Intel chip:** Aerowis-Compressor-mac-x64.dmg
           files: installers/*

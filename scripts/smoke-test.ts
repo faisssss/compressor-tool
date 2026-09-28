@@ -24,7 +24,7 @@ async function makePhoto(path: string, w: number, h: number): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const dir = await mkdtemp(join(tmpdir(), 'squeeze-smoke-'))
+  const dir = await mkdtemp(join(tmpdir(), 'aerowis-smoke-'))
   const out = join(dir, 'out')
   const photo = join(dir, 'photo.jpg')
   const photo2 = join(dir, 'photo2.jpg')
@@ -51,7 +51,7 @@ async function main(): Promise<void> {
   }
   await makePdf(pdf, 5)
   await makePdf(pdf2, 2)
-  await writeFile(doc, '{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard {\\b Hello} from Squeeze.\\par}')
+  await writeFile(doc, '{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard {\\b Hello} from Aerowis Compressor.\\par}')
 
   const cases: { tool: ToolId; files: string[]; options: ToolOptions; check?: (r: TaskResult[]) => string | null }[] = [
     { tool: 'compress-image', files: [photo, photo2], options: { mode: 'quality', level: 'balanced', format: 'same', maxSide: '0', strip: true } },

@@ -24,7 +24,7 @@ export default function App(): React.JSX.Element {
 
   return (
     <div className="relative flex h-full">
-      <Background colors={tool?.colors ?? ['#8b5cf6', '#ec4899']} />
+      <Background colors={tool?.colors ?? ['#1d4ed8', '#29b6f6']} />
       <Sidebar current={route} onNavigate={setRoute} />
       <main className="relative z-10 flex min-w-0 flex-1 flex-col">
         <div className="drag h-12 shrink-0" />

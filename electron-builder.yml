@@ -1,5 +1,5 @@
-appId: com.faisssss.squeeze
-productName: Squeeze
+appId: com.aerowis.compressor
+productName: Aerowis Compressor
 directories:
   buildResources: build
   output: dist
@@ -22,7 +22,7 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   # Fixed names (no version) so the README's "latest" download links never change.
-  artifactName: ${productName}-Setup.${ext}
+  artifactName: Aerowis-Compressor-Setup.${ext}
   shortcutName: ${productName}
 mac:
   icon: build/icon.png
@@ -30,7 +30,7 @@ mac:
   target:
     - target: dmg
       arch: [arm64, x64]
-  artifactName: ${productName}-mac-${arch}.${ext}
+  artifactName: Aerowis-Compressor-mac-${arch}.${ext}
   # Free ad-hoc signature: Apple Silicon Macs refuse to run completely unsigned apps.
   identity: '-'
   hardenedRuntime: false
