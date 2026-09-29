@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AnimatePresence } from 'framer-motion'
 import type { ToolId } from '@shared/types'
-import Background from './components/Background'
 import Sidebar from './components/Sidebar'
 import Home from './components/Home'
 import ToolView from './components/ToolView'
@@ -9,7 +7,13 @@ import { toolById } from './tools/registry'
 
 export default function App(): React.JSX.Element {
   const [route, setRoute] = useState<ToolId | 'home'>('home')
-  const tool = route === 'home' ? null : toolById(route)
+  // Tools stay mounted once opened, so switching back and forth is instant and keeps files and results.
+  const [opened, setOpened] = useState<ToolId[]>([])
+
+  const navigate = (next: ToolId | 'home'): void => {
+    if (next !== 'home') setOpened((o) => (o.includes(next) ? o : [...o, next]))
+    setRoute(next)
+  }
 
   // Dropping a file anywhere outside a tool must not navigate the window to that file.
   useEffect(() => {
@@ -23,15 +27,19 @@ export default function App(): React.JSX.Element {
   }, [])
 
   return (
-    <div className="relative flex h-full">
-      <Background colors={tool?.colors ?? ['#1d4ed8', '#29b6f6']} />
-      <Sidebar current={route} onNavigate={setRoute} />
-      <main className="relative z-10 flex min-w-0 flex-1 flex-col">
+    <div className="flex h-full">
+      <Sidebar current={route} onNavigate={navigate} />
+      <main className="flex min-w-0 flex-1 flex-col">
         <div className="drag h-12 shrink-0" />
         <div className="min-h-0 flex-1">
-          <AnimatePresence mode="wait">
-            {tool ? <ToolView key={tool.id} tool={tool} /> : <Home key="home" onOpen={setRoute} />}
-          </AnimatePresence>
+          <div className={route === 'home' ? 'h-full animate-view-in' : 'hidden'}>
+            <Home onOpen={navigate} />
+          </div>
+          {opened.map((id) => (
+            <div key={id} className={route === id ? 'h-full animate-view-in' : 'hidden'}>
+              <ToolView tool={toolById(id)} />
+            </div>
+          ))}
         </div>
       </main>
     </div>

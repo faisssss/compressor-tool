@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
-import type { InputFile, JobEvent, JobRequest, OfficeStatus } from '@shared/types'
+import type { InputFile, JobEvent, JobRequest, OfficeStatus, SaveItem, SaveOutcome } from '@shared/types'
 
 const api = {
   platform: process.platform,
@@ -14,6 +14,9 @@ const api = {
     ipcRenderer.on('job:event', listener)
     return () => ipcRenderer.removeListener('job:event', listener)
   },
+  /** Deletes a job's results from the review area (after saving, or when they're no longer wanted). */
+  discardJob: (jobId: string): void => ipcRenderer.send('job:discard', jobId),
+  saveResults: (items: SaveItem[]): Promise<SaveOutcome[]> => ipcRenderer.invoke('results:save', items),
   reveal: (path: string): void => ipcRenderer.send('shell:reveal', path),
   open: (path: string): void => ipcRenderer.send('shell:open', path),
   openExternal: (url: string): void => ipcRenderer.send('shell:external', url),

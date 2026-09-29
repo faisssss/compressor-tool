@@ -4,9 +4,9 @@ A desktop app for Windows and macOS that compresses, converts and edits images, 
 
 ![Home screen](docs/home.webp)
 
-| Compress to an exact size | Results |
+| Review results before saving | Before/after preview |
 |---|---|
-| ![Compress image](docs/compress-image.webp) | ![Results](docs/results.webp) |
+| ![Review and save](docs/results.webp) | ![Before and after preview](docs/preview.webp) |
 
 ## Tools
 
@@ -25,7 +25,14 @@ A desktop app for Windows and macOS that compresses, converts and edits images, 
 | 📝 | **Office to PDF** | Word, Excel, PowerPoint, ODT, RTF, TXT, CSV |
 | 📝 | **PDF to Word** | Editable .docx |
 
-Batch processing everywhere: drop in 50 files and they're all processed. Originals are never modified; results are saved next to them (or in a folder you choose).
+Batch processing everywhere: drop in 50 files and they're all processed.
+
+**Nothing is saved until you say so.** Results wait in a review list where you can:
+- **Preview** each one: a before/after slider (or side by side) for images, and page-by-page before/after for PDFs
+- **Rename** it before saving
+- **Pick** which results to keep, then save them next to the originals or into a folder you choose
+
+Originals are never modified, and existing files are never overwritten. Anything you don't save is discarded when you start over or close the app.
 
 ## Installing on your computers
 

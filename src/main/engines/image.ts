@@ -206,3 +206,12 @@ export async function thumbnail(path: string): Promise<string | undefined> {
     return undefined
   }
 }
+
+/**
+ * Display copy of an image the window can't show natively (HEIC, TIFF). Large enough to inspect detail,
+ * and encoded losslessly-ish so the preview doesn't add artifacts of its own.
+ */
+export async function renderImagePreview(path: string): Promise<Buffer> {
+  const img = await openImage(path)
+  return img.resize({ width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 95 }).toBuffer()
+}

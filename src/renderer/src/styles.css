@@ -2,26 +2,32 @@
 
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Space Grotesk Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 
-  /* Aerowis navy */
-  --color-ink-950: #070c26;
-  --color-ink-900: #0b1236;
-  --color-ink-800: #111a48;
-  --color-ink-700: #1a2562;
+  /* Aerowis navy surfaces */
+  --color-ink-950: #080d29;
+  --color-ink-900: #0a1030;
+  --color-surface: #0f173d;
+  --color-surface-2: #142049;
+  --color-surface-3: #1a2858;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-line-strong: rgb(255 255 255 / 0.14);
 
-  --animate-blob: blob 22s ease-in-out infinite;
-  --animate-spin-slow: spin 6s linear infinite;
-  --animate-shimmer: shimmer 2.6s ease-in-out infinite;
+  /* One accent for every interactive element */
+  --color-accent: #2b8cf0;
+  --color-accent-hover: #4a9ff5;
+  --color-accent-soft: rgb(43 140 240 / 0.14);
+  --color-sky-brand: #29b6f6;
 
-  @keyframes blob {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(8vw, -6vh) scale(1.15); }
-    66% { transform: translate(-6vw, 8vh) scale(0.9); }
+  --animate-view-in: view-in 160ms ease-out;
+  --animate-fade-in: fade-in 120ms ease-out;
+
+  @keyframes view-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
   }
-  @keyframes shimmer {
-    0% { transform: translateX(-120%) skewX(-20deg); }
-    60%, 100% { transform: translateX(220%) skewX(-20deg); }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 }
 
@@ -33,9 +39,13 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-ink-950);
-  color: #eef4ff;
+  /* A single soft light from the top — static, so it costs nothing to draw. */
+  background:
+    radial-gradient(1200px 600px at 60% -10%, rgb(41 182 246 / 0.10), transparent 70%),
+    var(--color-ink-900);
+  color: #e6edff;
   font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
   -webkit-font-smoothing: antialiased;
   user-select: none;
   overflow: hidden;
@@ -47,7 +57,18 @@ textarea {
 }
 
 ::selection {
-  background: rgb(56 189 248 / 0.4);
+  background: rgb(43 140 240 / 0.45);
+}
+
+button,
+a,
+input,
+select {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* Window dragging for the hidden title bar */
@@ -58,69 +79,10 @@ textarea {
   -webkit-app-region: no-drag;
 }
 
-/* Frosted glass panels */
-.glass {
-  background: linear-gradient(160deg, rgb(255 255 255 / 0.075), rgb(255 255 255 / 0.025));
-  border: 1px solid rgb(255 255 255 / 0.08);
-  backdrop-filter: blur(24px) saturate(140%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.06),
-    0 20px 60px -20px rgb(0 0 0 / 0.6);
-}
-
-.text-gradient {
-  background: linear-gradient(100deg, #fff 0%, #dbeafe 35%, #7dd3fc 65%, #29b6f6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Rotating conic border used by the drop zone and the primary button */
-@property --angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-.spin-border {
-  position: relative;
-  isolation: isolate;
-}
-.spin-border::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 2px;
-  background: conic-gradient(from var(--angle), var(--c1), var(--c2) 18%, rgb(255 255 255 / 0.08) 30%, rgb(255 255 255 / 0.08) 50%, var(--c2) 62%, var(--c1) 80%, rgb(255 255 255 / 0.08) 92%, var(--c1));
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: rotate-angle 4s linear infinite;
-  z-index: -1;
-  opacity: 0.9;
-}
-@keyframes rotate-angle {
-  to {
-    --angle: 360deg;
-  }
-}
-
-/* Grain overlay for a richer background */
-.grain {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
-  opacity: 0.06;
-  mix-blend-mode: overlay;
-}
-
-.grid-bg {
-  background-image:
-    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%);
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
 }
 
 /* Slim scrollbars */
@@ -145,27 +107,32 @@ textarea {
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
-  height: 6px;
+  height: 4px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--c1), var(--c2)) 0 / var(--fill, 50%) 100% no-repeat, rgb(255 255 255 / 0.1);
-  outline: none;
+  background: linear-gradient(var(--color-accent), var(--color-accent)) 0 / var(--fill, 50%) 100% no-repeat, rgb(255 255 255 / 0.12);
 }
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #fff;
-  box-shadow:
-    0 0 0 4px rgb(255 255 255 / 0.12),
-    0 4px 14px rgb(0 0 0 / 0.5);
+  border: 3px solid var(--color-accent);
   cursor: pointer;
-  transition: transform 0.15s;
-}
-input[type='range']::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
 }
 
 input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
+}
+
+/* Checkerboard behind previews so transparent images are visible */
+.checker {
+  background-color: #1a2140;
+  background-image:
+    linear-gradient(45deg, #212a4d 25%, transparent 25%),
+    linear-gradient(-45deg, #212a4d 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #212a4d 75%),
+    linear-gradient(-45deg, transparent 75%, #212a4d 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }

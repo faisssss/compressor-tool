@@ -4,14 +4,17 @@
  */
 import type { JobRequest } from '@shared/types'
 import { runJob } from './engines/runner'
-import { thumbnail } from './engines/image'
-import { pdfPageCount } from './engines/pdf'
+import { renderImagePreview, thumbnail } from './engines/image'
+import { pdfPageCount, renderPdfPage } from './engines/pdf'
+import { errorMessage } from './engines/util'
 
 export type WorkerRequest =
   | { kind: 'job'; req: JobRequest }
   | { kind: 'inspect'; reqId: string; path: string; thumb: boolean; pdf: boolean }
+  | { kind: 'render'; reqId: string; path: string; what: 'image' | 'pdf-page'; page: number; dpi: number }
 
 export type InspectResult = { kind: 'inspect'; reqId: string; thumb?: string; pages?: number }
+export type RenderResult = { kind: 'render'; reqId: string; data?: Uint8Array; mime?: string; error?: string }
 
 const port = process.parentPort
 
@@ -25,6 +28,17 @@ port.on('message', async (e: { data: WorkerRequest }) => {
       msg.pdf ? pdfPageCount(msg.path) : undefined
     ])
     const reply: InspectResult = { kind: 'inspect', reqId: msg.reqId, thumb, pages }
+    port.postMessage(reply)
+  } else if (msg.kind === 'render') {
+    let reply: RenderResult
+    try {
+      reply =
+        msg.what === 'image'
+          ? { kind: 'render', reqId: msg.reqId, data: await renderImagePreview(msg.path), mime: 'image/jpeg' }
+          : { kind: 'render', reqId: msg.reqId, data: await renderPdfPage(msg.path, msg.page, msg.dpi), mime: 'image/png' }
+    } catch (err) {
+      reply = { kind: 'render', reqId: msg.reqId, error: errorMessage(err) }
+    }
     port.postMessage(reply)
   }
 })

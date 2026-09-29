@@ -1,18 +1,26 @@
-import { useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, animate, motion } from 'framer-motion'
-import { AlertTriangle, ArrowRight, CheckCircle2, ExternalLink, FolderOpen, Loader2, RotateCcw, SlidersHorizontal } from 'lucide-react'
+import { AlertTriangle, Check, CheckCircle2, Eye, FolderOpen, Loader2 } from 'lucide-react'
 import type { FileStatus, TaskResult } from '@shared/types'
 import type { ToolDef } from '../tools/registry'
 import { formatBytes, savedPercent } from '../lib/format'
+import { kindOf, previewUrl, splitName } from '../lib/paths'
+import { FileIcon } from './FileList'
 
 export interface Task {
   label: string
   status: FileStatus
   result?: TaskResult
+  /** Name the result will be saved under (no extension; folder name when there are several files). */
+  name: string
+  /** Included when pressing "Save selected". */
+  selected: boolean
+  saved?: string[]
+  saveError?: string
 }
 
 export interface JobState {
   id: string
+  /** Input paths in the order they were processed. */
+  inputs: string[]
   tasks: Task[]
   done: boolean
   fatal?: string
@@ -21,284 +29,170 @@ export interface JobState {
 interface Props {
   tool: ToolDef
   job: JobState
-  onAdjust: () => void
-  onReset: () => void
+  onToggle: (index: number) => void
+  onToggleAll: (selected: boolean) => void
+  onRename: (index: number, name: string) => void
+  onPreview: (index: number) => void
 }
 
-const SHOWS_SAVINGS = new Set(['compress-image', 'compress-pdf', 'resize-image'])
+export const SHOWS_SAVINGS = new Set(['compress-image', 'compress-pdf', 'resize-image'])
 
-export default function Results({ tool, job, onAdjust, onReset }: Props): React.JSX.Element {
-  const [c1, c2] = tool.colors
+export const outputSize = (r: TaskResult): number => r.outputs.reduce((s, o) => s + o.size, 0)
+
+export default function Results({ tool, job, onToggle, onToggleAll, onRename, onPreview }: Props): React.JSX.Element {
   const finished = job.tasks.filter((t) => t.status === 'done' || t.status === 'error').length
-  const progress = job.tasks.length ? finished / job.tasks.length : 0
-
-  const stats = useMemo(() => {
-    const ok = job.tasks.filter((t) => t.result && !t.result.error)
-    const before = ok.reduce((s, t) => s + t.result!.inputSize, 0)
-    const after = ok.reduce((s, t) => s + t.result!.outputs.reduce((a, o) => a + o.size, 0), 0)
-    const outputs = ok.flatMap((t) => t.result!.outputs)
-    const errors = job.tasks.filter((t) => t.result?.error).length
-    return { before, after, outputs, errors, ok: ok.length }
-  }, [job])
-
-  const showSavings = SHOWS_SAVINGS.has(tool.id) && stats.before > 0
-  const firstOutput = stats.outputs[0]
+  const ok = job.tasks.filter((t) => t.result && !t.result.error)
+  const before = ok.reduce((s, t) => s + t.result!.inputSize, 0)
+  const after = ok.reduce((s, t) => s + outputSize(t.result!), 0)
+  const selectable = ok.filter((t) => !t.saved)
+  const allSelected = selectable.length > 0 && selectable.every((t) => t.selected)
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      {/* Summary */}
-      <motion.div layout className="glass relative overflow-hidden rounded-[24px] p-6">
-        <div className="pointer-events-none absolute inset-0 opacity-60" style={{ background: `radial-gradient(500px circle at 12% 0%, ${c1}30, transparent 60%)` }} />
-        {job.done && stats.errors === 0 && !job.fatal && <Confetti colors={[c1, c2, '#ffffff', '#bae6fd']} />}
-
-        <div className="relative flex items-center gap-6">
-          {!job.done ? (
-            <div className="grid h-[104px] w-[104px] shrink-0 place-items-center">
-              <Loader2 className="h-12 w-12 animate-spin" style={{ color: c1 }} />
-            </div>
-          ) : showSavings ? (
-            <SavingsRing percent={savedPercent(stats.before, stats.after)} colors={tool.colors} />
+    <div className="panel flex h-full min-h-0 flex-col">
+      <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+        {job.done && selectable.length > 0 && (
+          <Checkbox checked={allSelected} onChange={() => onToggleAll(!allSelected)} title={allSelected ? 'Deselect all' : 'Select all'} />
+        )}
+        <div className="min-w-0 flex-1 text-[13px]">
+          {job.fatal ? (
+            <span className="text-rose-300">{job.fatal}</span>
+          ) : !job.done ? (
+            <span className="text-white/70">
+              Processing {Math.min(finished + 1, job.tasks.length || 1)} of {job.tasks.length || '…'}
+            </span>
           ) : (
-            <motion.div
-              initial={{ scale: 0, rotate: -30 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 16 }}
-              className="grid h-[104px] w-[104px] shrink-0 place-items-center rounded-[30px]"
-              style={{ background: stats.errors && !stats.ok ? 'linear-gradient(135deg,#f43f5e,#b91c1c)' : `linear-gradient(135deg, ${c1}, ${c2})`, boxShadow: `0 20px 50px -14px ${c1}` }}
-            >
-              {stats.errors && !stats.ok ? <AlertTriangle className="h-12 w-12" /> : <CheckCircle2 className="h-12 w-12" />}
-            </motion.div>
-          )}
-
-          <div className="min-w-0 flex-1">
-            <div className="font-display text-[26px] font-bold leading-tight">
-              {job.fatal
-                ? 'Something went wrong'
-                : !job.done
-                  ? `Working… ${finished} of ${job.tasks.length}`
-                  : stats.ok === 0
-                    ? 'That didn’t work'
-                    : showSavings
-                      ? stats.after < stats.before
-                        ? `You saved ${formatBytes(stats.before - stats.after)}`
-                        : 'Done — already optimized'
-                      : `${stats.outputs.length} file${stats.outputs.length === 1 ? '' : 's'} ready`}
-            </div>
-            <div className="mt-1.5 text-[13.5px] text-white/55">
-              {job.fatal
-                ? job.fatal
-                : job.done && showSavings
-                  ? `${formatBytes(stats.before)} → ${formatBytes(stats.after)}`
-                  : job.done
-                    ? `${stats.ok} succeeded${stats.errors ? ` · ${stats.errors} failed` : ''}`
-                    : 'Hang tight — everything happens on your computer.'}
-            </div>
-
-            {!job.done && (
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08]">
-                <motion.div
-                  className="relative h-full overflow-hidden rounded-full"
-                  style={{ background: `linear-gradient(90deg, ${c1}, ${c2})` }}
-                  animate={{ width: `${Math.max(6, progress * 100)}%` }}
-                  transition={{ type: 'spring', stiffness: 80, damping: 20 }}
-                >
-                  <span className="absolute inset-y-0 left-0 w-1/3 animate-shimmer bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-                </motion.div>
-              </div>
-            )}
-          </div>
-
-          {job.done && (
-            <motion.div initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} className="flex shrink-0 flex-col gap-2">
-              {firstOutput && (
-                <button
-                  onClick={() => window.api.reveal(firstOutput.path)}
-                  className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-white transition hover:brightness-110"
-                  style={{ background: `linear-gradient(135deg, ${c1}, ${c2})`, boxShadow: `0 10px 30px -10px ${c1}` }}
-                >
-                  <FolderOpen className="h-4 w-4" /> Show in folder
-                </button>
+            <>
+              <span className="font-medium text-white">
+                {ok.length} result{ok.length === 1 ? '' : 's'} ready to review
+              </span>
+              {SHOWS_SAVINGS.has(tool.id) && before > 0 && (
+                <span className="text-white/50">
+                  {' '}
+                  · {formatBytes(before)} → {formatBytes(after)}
+                  <span className={after < before ? ' text-emerald-300' : ' text-amber-300'}> ({savedLabel(before, after)})</span>
+                </span>
               )}
-              <div className="flex gap-2">
-                <button onClick={onAdjust} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/[0.07] px-3 py-2 text-[12.5px] font-medium hover:bg-white/[0.12]" title="Same files, different settings">
-                  <SlidersHorizontal className="h-3.5 w-3.5" /> Adjust
-                </button>
-                <button onClick={onReset} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/[0.07] px-3 py-2 text-[12.5px] font-medium hover:bg-white/[0.12]" title="Start with new files">
-                  <RotateCcw className="h-3.5 w-3.5" /> New
-                </button>
-              </div>
-            </motion.div>
+              {job.tasks.length > ok.length && <span className="text-rose-300"> · {job.tasks.length - ok.length} failed</span>}
+            </>
           )}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Per-file rows */}
-      <div className="glass min-h-0 flex-1 space-y-2 overflow-y-auto rounded-[24px] p-3">
+      {!job.done && (
+        <div className="h-0.5 bg-white/5">
+          <div className="h-full bg-accent transition-[width] duration-300" style={{ width: `${job.tasks.length ? (finished / job.tasks.length) * 100 : 5}%` }} />
+        </div>
+      )}
+
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
         {job.tasks.map((t, i) => (
-          <TaskRow key={i} task={t} tool={tool} index={i} />
+          <Row key={i} task={t} tool={tool} onToggle={() => onToggle(i)} onRename={(n) => onRename(i, n)} onPreview={() => onPreview(i)} />
         ))}
       </div>
     </div>
   )
 }
 
-function TaskRow({ task, tool, index }: { task: Task; tool: ToolDef; index: number }): React.JSX.Element {
+const savedLabel = (before: number, after: number): string => {
+  const pct = savedPercent(before, after)
+  return pct > 0 ? `−${pct}%` : pct === 0 ? 'same size' : `+${-pct}%`
+}
+
+function Row({ task, tool, onToggle, onRename, onPreview }: { task: Task; tool: ToolDef; onToggle: () => void; onRename: (name: string) => void; onPreview: () => void }): React.JSX.Element {
   const r = task.result
-  const out = r?.outputs ?? []
-  const outSize = out.reduce((s, o) => s + o.size, 0)
-  const pct = r && !r.error && out.length ? savedPercent(r.inputSize, outSize) : null
-  const [c1] = tool.colors
+  const ready = r && !r.error && r.outputs.length > 0
+  const single = ready && r.outputs.length === 1
+  const ext = single ? splitName(r.outputs[0].name).ext : ''
+  const first = ready ? r.outputs[0] : null
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index, 12) * 0.03 }}
-      className="flex items-center gap-3 rounded-2xl border border-white/[0.05] bg-white/[0.03] px-4 py-3"
-    >
-      <StatusIcon status={task.status} color={c1} />
+    <div className={`flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors ${ready ? 'bg-surface hover:bg-surface-2' : 'bg-surface/60'}`}>
+      <div className="w-5">
+        {ready && !task.saved && <Checkbox checked={task.selected} onChange={onToggle} />}
+        {task.saved && <Check className="h-4 w-4 text-emerald-400" />}
+        {task.status === 'working' && <Loader2 className="h-4 w-4 animate-spin text-accent-hover" />}
+        {task.status === 'queued' && <span className="block h-4 w-4 rounded-full border-2 border-white/15" />}
+        {r?.error && <AlertTriangle className="h-4 w-4 text-rose-400" />}
+      </div>
+
+      {first && kindOf(first.path) === 'image' ? (
+        <button onClick={onPreview} className="checker h-10 w-10 shrink-0 overflow-hidden rounded-md">
+          <img src={previewUrl(first.path)} alt="" loading="lazy" className="h-full w-full object-cover" draggable={false} />
+        </button>
+      ) : (
+        <FileIcon ext={first ? splitName(first.name).ext.toLowerCase() : ''} />
+      )}
+
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 text-[13.5px] font-medium">
-          <span className="truncate">{task.label}</span>
-          {out.length === 1 && out[0].name !== task.label && (
-            <>
-              <ArrowRight className="h-3.5 w-3.5 shrink-0 text-white/30" />
-              <span className="truncate text-white/70">{out[0].name}</span>
-            </>
-          )}
-        </div>
-        <div className="mt-0.5 truncate text-[12px] text-white/45">
+        {ready && !task.saved ? (
+          <div className="flex w-fit max-w-full items-center rounded-md border border-transparent transition-colors focus-within:border-accent hover:border-line">
+            <input
+              value={task.name}
+              onChange={(e) => onRename(e.target.value)}
+              spellCheck={false}
+              title="Click to rename"
+              // Grows with the text so the extension sits right after the name.
+              style={{ fieldSizing: 'content' } as React.CSSProperties}
+              className="min-w-[4ch] max-w-[420px] bg-transparent py-0.5 pl-1.5 text-[13px] font-medium outline-none"
+            />
+            <span className="shrink-0 pr-1.5 text-[13px] text-white/40">{single ? `.${ext}` : `/ ${r.outputs.length} files`}</span>
+          </div>
+        ) : (
+          <div className="truncate px-1.5 text-[13px] font-medium">{task.saved ? savedName(task) : task.label}</div>
+        )}
+        <div className="truncate px-1.5 text-[12px] text-white/45">
           {task.status === 'queued' && 'Waiting…'}
-          {task.status === 'working' && 'Processing…'}
-          {r?.error && <span className="text-rose-300">{r.error}</span>}
-          {r && !r.error && (
+          {task.status === 'working' && `Processing ${task.label}…`}
+          {r?.error && <span className="text-rose-300">{task.label}: {r.error}</span>}
+          {task.saveError && <span className="text-rose-300">Couldn’t save: {task.saveError}</span>}
+          {ready && !task.saveError && (
             <>
-              {formatBytes(r.inputSize)} → {formatBytes(outSize)}
-              {out.length > 1 && ` · ${out.length} files`}
+              {task.saved ? 'Saved' : `From ${task.label}`} · {formatBytes(r.inputSize)} → {formatBytes(outputSize(r))}
               {r.note && ` · ${r.note}`}
             </>
           )}
         </div>
       </div>
 
-      <AnimatePresence>
-        {pct !== null && SHOWS_SAVINGS.has(tool.id) && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className={`rounded-lg px-2 py-1 font-display text-[12.5px] font-bold tabular-nums ${
-              pct > 0 ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'
-            }`}
-          >
-            {pct > 0 ? `−${pct}%` : pct === 0 ? '0%' : `+${-pct}%`}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {ready && SHOWS_SAVINGS.has(tool.id) && (
+        <span className={`rounded-md px-1.5 py-0.5 text-[12px] font-semibold tabular-nums ${outputSize(r) < r.inputSize ? 'bg-emerald-400/10 text-emerald-300' : 'bg-amber-400/10 text-amber-300'}`}>
+          {savedLabel(r.inputSize, outputSize(r))}
+        </span>
+      )}
 
-      {out.length > 0 && (
-        <div className="flex gap-1">
-          {out.length === 1 && (
-            <button onClick={() => window.api.open(out[0].path)} className="rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white" title="Open">
-              <ExternalLink className="h-4 w-4" />
+      {ready && (
+        <div className="flex items-center gap-1">
+          <button onClick={onPreview} className="flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-[12.5px] font-medium transition-colors hover:border-line-strong hover:bg-white/5">
+            <Eye className="h-3.5 w-3.5" /> Preview
+          </button>
+          {task.saved && (
+            <button onClick={() => window.api.reveal(task.saved![0])} className="rounded-md p-1.5 text-white/50 hover:bg-white/10 hover:text-white" title="Show in folder">
+              <FolderOpen className="h-4 w-4" />
             </button>
           )}
-          <button onClick={() => window.api.reveal(out[0].path)} className="rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white" title="Show in folder">
-            <FolderOpen className="h-4 w-4" />
-          </button>
         </div>
       )}
-    </motion.div>
-  )
-}
-
-function StatusIcon({ status, color }: { status: FileStatus; color: string }): React.JSX.Element {
-  if (status === 'working') return <Loader2 className="h-5 w-5 shrink-0 animate-spin" style={{ color }} />
-  if (status === 'done')
-    return (
-      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}>
-        <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
-      </motion.span>
-    )
-  if (status === 'error') return <AlertTriangle className="h-5 w-5 shrink-0 text-rose-400" />
-  return <span className="h-5 w-5 shrink-0 rounded-full border-2 border-white/15" />
-}
-
-function SavingsRing({ percent, colors }: { percent: number; colors: [string, string] }): React.JSX.Element {
-  const [shown, setShown] = useState(0)
-  const clamped = Math.max(0, Math.min(100, percent))
-  useEffect(() => {
-    const controls = animate(0, clamped, { duration: 1.4, ease: [0.16, 1, 0.3, 1], onUpdate: (v) => setShown(Math.round(v)) })
-    return () => controls.stop()
-  }, [clamped])
-  const R = 44
-  const C = 2 * Math.PI * R
-  return (
-    <div className="relative h-[104px] w-[104px] shrink-0">
-      <svg viewBox="0 0 104 104" className="h-full w-full -rotate-90">
-        <defs>
-          <linearGradient id="ring-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor={colors[0]} />
-            <stop offset="1" stopColor={colors[1]} />
-          </linearGradient>
-        </defs>
-        <circle cx="52" cy="52" r={R} fill="none" stroke="rgb(255 255 255 / 0.08)" strokeWidth="9" />
-        <motion.circle
-          cx="52"
-          cy="52"
-          r={R}
-          fill="none"
-          stroke="url(#ring-g)"
-          strokeWidth="9"
-          strokeLinecap="round"
-          strokeDasharray={C}
-          initial={{ strokeDashoffset: C }}
-          animate={{ strokeDashoffset: C * (1 - clamped / 100) }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-          style={{ filter: `drop-shadow(0 0 8px ${colors[0]})` }}
-        />
-      </svg>
-      <div className="absolute inset-0 grid place-items-center">
-        <div className="text-center">
-          <div className="font-display text-[26px] font-bold leading-none tabular-nums">{shown}%</div>
-          <div className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-white/45">smaller</div>
-        </div>
-      </div>
+      {task.status === 'done' && !ready && !r?.error && <CheckCircle2 className="h-4 w-4 text-emerald-400" />}
     </div>
   )
 }
 
-function Confetti({ colors }: { colors: string[] }): React.JSX.Element {
-  const pieces = useMemo(
-    () =>
-      Array.from({ length: 46 }, (_, i) => {
-        const angle = (Math.random() * 140 + 200) * (Math.PI / 180) // mostly upward
-        const speed = 140 + Math.random() * 220
-        return {
-          id: i,
-          x: Math.cos(angle) * speed * 1.6,
-          y: Math.sin(angle) * speed,
-          rotate: Math.random() * 720 - 360,
-          color: colors[i % colors.length],
-          w: 5 + Math.random() * 6,
-          h: 8 + Math.random() * 8,
-          delay: Math.random() * 0.15
-        }
-      }),
-    // Generated once per burst; re-rendering must not restart the animation.
-    []
-  )
+const savedName = (t: Task): string => {
+  const p = t.saved![0]
+  if (t.saved!.length > 1) return p.split(/[\\/]/).slice(-2, -1)[0]
+  return p.split(/[\\/]/).pop() ?? p
+}
+
+export function Checkbox({ checked, onChange, title }: { checked: boolean; onChange: () => void; title?: string }): React.JSX.Element {
   return (
-    <div className="pointer-events-none absolute left-[70px] top-[70px]">
-      {pieces.map((p) => (
-        <motion.span
-          key={p.id}
-          className="absolute rounded-[2px]"
-          style={{ background: p.color, width: p.w, height: p.h }}
-          initial={{ x: 0, y: 0, opacity: 1, rotate: 0 }}
-          animate={{ x: p.x, y: [0, p.y, p.y + 260], opacity: [1, 1, 0], rotate: p.rotate }}
-          transition={{ duration: 1.8, delay: p.delay, ease: 'easeOut', times: [0, 0.4, 1] }}
-        />
-      ))}
-    </div>
+    <button
+      onClick={onChange}
+      title={title}
+      role="checkbox"
+      aria-checked={checked}
+      className={`grid h-4 w-4 place-items-center rounded border transition-colors duration-100 ${checked ? 'border-accent bg-accent' : 'border-white/30 hover:border-white/60'}`}
+    >
+      {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+    </button>
   )
 }

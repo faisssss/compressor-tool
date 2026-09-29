@@ -66,3 +66,22 @@ export interface OfficeStatus {
   libreOffice: string | null
   msOffice: boolean
 }
+
+/** Where a reviewed result should be saved. */
+export type SaveDestination = { kind: 'beside'; original: string } | { kind: 'folder'; folder: string }
+
+export interface SaveItem {
+  /** Caller's identifier, echoed back in the outcome. */
+  key: string
+  /** Files in the temporary review area. Several outputs are saved together in one folder named `name`. */
+  outputs: string[]
+  /** New name without extension (single file) or the folder name (several files). */
+  name: string
+  dest: SaveDestination
+}
+
+export interface SaveOutcome {
+  key: string
+  saved: string[]
+  error?: string
+}

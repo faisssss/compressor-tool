@@ -290,3 +290,28 @@ export async function pdfPageCount(path: string): Promise<number | undefined> {
   }
 }
 
+
+/** Renders one page (1-based) of a PDF to PNG for the before/after preview. */
+export async function renderPdfPage(path: string, page: number, dpi: number): Promise<Buffer> {
+  const r = await ghostscript({ '/in.pdf': await readFile(path) }, [
+    '-sDEVICE=png16m',
+    `-r${dpi}`,
+    `-dFirstPage=${page}`,
+    `-dLastPage=${page}`,
+    '-dTextAlphaBits=4',
+    '-dGraphicsAlphaBits=4',
+    '-sOutputFile=/page.png',
+    '/in.pdf'
+  ])
+  let out: Uint8Array | null = null
+  try {
+    out = r.fs.readFile('/page.png')
+  } catch {
+    // not rendered
+  }
+  if (!out || out.length === 0) {
+    const msg = lastError(r.log, 'Could not render this page')
+    throw new Error(/password|encrypt/i.test(msg) ? 'Password-protected PDF' : msg)
+  }
+  return Buffer.from(out)
+}

@@ -18,7 +18,7 @@ export default function OfficeNotice({ toolId }: { toolId: ToolId }): React.JSX.
 
   if (!ready) {
     return (
-      <div className="rounded-2xl border border-amber-400/25 bg-amber-400/[0.07] p-4">
+      <div className="rounded-lg border border-amber-400/25 bg-amber-400/[0.07] p-4">
         <div className="flex items-center gap-2 text-[13.5px] font-semibold text-amber-200">
           <AlertTriangle className="h-4 w-4" /> One-time setup needed
         </div>
@@ -42,7 +42,7 @@ export default function OfficeNotice({ toolId }: { toolId: ToolId }): React.JSX.
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-2 text-[12.5px] text-emerald-100/80">
+      <div className="flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-2 text-[12.5px] text-emerald-100/80">
         <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-300" />
         <span>
           Ready — using {[status.msOffice && 'Microsoft Office', status.libreOffice && 'LibreOffice'].filter(Boolean).join(' / ')}
